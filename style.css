@@ -1,0 +1,23 @@
+header {
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    display: flex;
+    justify-content: center;
+}
+
+main {
+    max-width: 50%;
+    margin: 0 auto;
+    padding-top: 10%;
+}
+
+#intro {
+    display: flex;
+    align-items: center;
+}
+
+#photo {
+    border-radius: 8px;
+}
