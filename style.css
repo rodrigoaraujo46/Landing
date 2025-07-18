@@ -1,23 +1,211 @@
-header {
-    position: fixed;
-    width: 100%;
-    top: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
+:root {
+    --go-bg: #202224;
+    --go-fg: #00ADD8;
+    --go-text: #f0f1f2;
+    --go-border: #6e7072;
 }
 
 main {
-    max-width: 50%;
-    margin: 0 auto;
-    padding-top: 10%;
+    color: var(--go-text);
+    background-color: var(--go-bg);
+    height: unset !important;
+    font-family: cursive;
 }
 
-#intro {
+header {
+    position: fixed;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 1000;
+}
+
+section {
+    padding: 10%;
+    height: 100vh !important;
     display: flex;
     align-items: center;
 }
 
+section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-size: 40px 40px;
+    -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 75%);
+    mask-image: radial-gradient(ellipse at center, black, transparent 75%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+section:nth-of-type(odd)::before {
+    background-image: radial-gradient(circle, var(--go-border) 2px, transparent 1px);
+}
+
+section:nth-of-type(even)::before {
+    background-image:
+        linear-gradient(to right, var(--go-border) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--go-border) 1px, transparent 1px);
+}
+
+hr {
+    border-color: var(--go-border);
+    background-color: var(--go-border);
+    height: 3px;
+}
+
+p {
+    font-family: Inter;
+    font-size: 1.5rem;
+    line-height: 1.75rem;
+    margin: 0;
+}
+
+h1 {
+    font-family: Inter;
+    font-size: 3.75rem;
+    line-height: 125%;
+    margin: 0;
+    margin-top: 0.5rem;
+}
+
+span {
+    color: var(--go-fg);
+}
+
+#introduction {
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+#fp-nav ul li a span {
+    background: var(--go-fg) !important;
+}
+
 #photo {
     border-radius: 8px;
+}
+
+#menu {
+    padding: 0;
+    margin: 0;
+}
+
+#menu li {
+    display: inline-block;
+    margin: 10px;
+    color: #000;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+}
+
+#menu li:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+#menu li.active,
+#menu li.active:hover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+#menu li a {
+    text-decoration: none;
+    color: #000;
+    padding: 9px 18px;
+    display: block;
+}
+
+#menu li.active a,
+#menu li.active:hover a:hover {
+    color: #fff;
+}
+
+#circle-orbit-container {
+    height: 270px;
+    width: 270px;
+    transform: scale(1);
+}
+
+#inner-orbit {
+    position: absolute;
+    top: 73px;
+    left: 73px;
+    width: 120px;
+    height: 120px;
+    border: 2px var(--go-text) dashed;
+    border-radius: 100%;
+    -webkit-animation: spin-right 20s linear infinite;
+    animation: spin-right 30s linear infinite;
+}
+
+.inner-orbit-cirlces {
+    display: flex;
+    align-items: center;
+    justify-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 62px;
+    left: -20px;
+    height: 56px;
+    width: 56px;
+    border-radius: 50px;
+    background-color: var(--go-bg);
+    animation: spin-left 30s linear infinite
+}
+
+#outer-orbit {
+    top: 20px;
+    left: 20px;
+    position: absolute;
+    width: 225px;
+    height: 225px;
+    border: 2px var(--go-text) dashed;
+    border-radius: 100%;
+    animation: spin-left 60s linear infinite;
+}
+
+.outer-orbit-cirlces {
+    display: flex;
+    align-items: center;
+    justify-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 28px;
+    left: 17px;
+    height: 50px;
+    width: 50px;
+    border-radius: 50px;
+    background-color: var(--go-bg);
+    animation: spin-right 60s linear infinite
+}
+
+@keyframes spin-right {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spin-left {
+    100% {
+        transform: rotate(-360deg);
+    }
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.5rem;
+}
+
+#links a {
+    text-decoration: none;
+    background-color: var(--go-bg);
 }
