@@ -65,13 +65,6 @@ span {
     color: var(--go-fg);
 }
 
-#intro {
-    overflow: hidden;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 3rem;
-}
-
 #skills {
     gap: 3rem;
     flex-direction: column;
@@ -111,11 +104,6 @@ h3 {
 
 .skillsSplit:nth-of-type(even) {
     margin-top: 3rem;
-}
-
-#photo {
-    border-radius: 8px;
-    max-width: 100%;
 }
 
 #circle-orbit-container {
