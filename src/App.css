@@ -2,13 +2,13 @@
     text-align: center;
 }
 
-section {
-    padding: 15dvh;
-}
-
 main {
     position: relative;
     z-index: 0;
+    padding: 15dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 10rem;
 }
 
 main::before {
