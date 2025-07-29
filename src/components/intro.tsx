@@ -1,5 +1,5 @@
 import Links from "./links"
-import Orbits from "./orbits"
+import SkillCloud from "./cloud"
 
 export default function Intro() {
     return (
@@ -13,7 +13,7 @@ export default function Intro() {
 function Bio() {
     return (
         <div className="font-roboto flex flex-col gap-2">
-            <p className="text-2xl"> 👋🏻 I'm Rodrigo Araújo </p>
+            <h2 className="text-2xl"> 👋🏻 I'm Rodrigo Araújo </h2>
             <h1 className="text-7xl font-bold"> <span className="text-gopher"> Full-Stack </span> Developer </h1>
             <div className="w-full flex-wrap flex flex-row mt-10 gap-16 items-start justify-center-safe">
                 <div className="flex flex-col gap-8 mt-5">
@@ -22,8 +22,8 @@ function Bio() {
                     </p>
                     <Links />
                 </div>
-                <div className="w-72 h-72">
-                    <Orbits />
+                <div>
+                    <SkillCloud />
                 </div>
             </div>
         </div>
