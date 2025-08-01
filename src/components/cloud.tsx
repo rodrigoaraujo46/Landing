@@ -20,7 +20,8 @@ export default function SkillCloud() {
         <Icons.Redis />,
         <Icons.Django />,
         <Icons.Ngrok />,
-        <Icons.Vite />
+        <Icons.Vite />,
+        <Icons.Kubernetes />
     ];
 
     return (

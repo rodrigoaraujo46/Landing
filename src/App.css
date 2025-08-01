@@ -6,7 +6,7 @@
 main {
     position: relative;
     z-index: 0;
-    padding: 10dvh 5dvh 0 5dvh;
+    padding: 10dvh 4dvh 10dvh 4dvh;
     display: flex;
     flex-direction: column;
     gap: 7rem;
