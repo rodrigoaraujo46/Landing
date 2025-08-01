@@ -1,0 +1,8 @@
+.tooltip::before {
+    background-color: red;
+    inset: 0;
+    content: '★';
+    color: gold;
+    margin-right: 0.25rem;
+    display: inline-block;
+}

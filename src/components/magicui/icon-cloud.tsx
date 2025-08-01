@@ -14,14 +14,13 @@ interface Icon {
 
 interface IconCloudProps {
     icons?: React.ReactNode[];
-    images?: string[];
 }
 
 function easeOutCubic(t: number): number {
     return 1 - Math.pow(1 - t, 3);
 }
 
-export function IconCloud({ icons, images }: IconCloudProps) {
+export function IconCloud({ icons }: IconCloudProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [iconPositions, setIconPositions] = useState<Icon[]>([]);
     const [rotation] = useState({ x: 0, y: 0 });
@@ -44,55 +43,40 @@ export function IconCloud({ icons, images }: IconCloudProps) {
 
     // Create icon canvases once when icons/images change
     useEffect(() => {
-        if (!icons && !images) return;
+        if (!icons) return;
 
-        const items = icons || images || [];
-        imagesLoadedRef.current = new Array(items.length).fill(false);
+        imagesLoadedRef.current = new Array(icons.length).fill(false);
 
-        const newIconCanvases = items.map((item, index) => {
+        const newIconCanvases = icons.map((icon, index) => {
             const offscreen = document.createElement("canvas");
             offscreen.width = 40;
             offscreen.height = 40;
             const offCtx = offscreen.getContext("2d");
 
             if (offCtx) {
-                if (images) {
-                    // Handle image URLs directly
-                    const img = new Image();
-                    img.crossOrigin = "anonymous";
-                    img.src = items[index] as string;
-                    img.onload = () => {
-                        offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
-
-                        // Draw the image
-                        offCtx.drawImage(img, 0, 0, 40, 40);
-
-                        imagesLoadedRef.current[index] = true;
-                    };
-                } else {
-                    // Handle SVG icons
-                    offCtx.scale(0.4, 0.4);
-                    const svgString = renderToString(item as React.ReactElement);
-                    const img = new Image();
-                    img.src = "data:image/svg+xml;base64," + btoa(svgString);
-                    img.onload = () => {
-                        offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
-                        offCtx.drawImage(img, 0, 0);
-                        imagesLoadedRef.current[index] = true;
-                    };
-                }
+                const imgS = renderToString(icon);
+                const src = imgS.match(/src="([^"]*)"/)?.[1] ?? '';
+                const alt = imgS.match(/alt="([^"]*)"/)?.[1] ?? '';
+                const img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = src
+                img.alt = alt
+                img.onload = () => {
+                    offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
+                    offCtx.drawImage(img, 0, 0);
+                    imagesLoadedRef.current[index] = true;
+                };
             }
             return offscreen;
         });
 
         iconCanvasesRef.current = newIconCanvases;
-    }, [icons, images]);
+    }, [icons]);
 
     // Generate initial icon positions on a sphere
     useEffect(() => {
-        const items = icons || images || [];
         const newIcons: Icon[] = [];
-        const numIcons = items.length || 20;
+        const numIcons = icons?.length || 20;
 
         // Fibonacci sphere parameters
         const offset = 2 / numIcons;
@@ -116,7 +100,7 @@ export function IconCloud({ icons, images }: IconCloudProps) {
             });
         }
         setIconPositions(newIcons);
-    }, [icons, images]);
+    }, [icons]);
 
     // Handle mouse events
     const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -266,7 +250,7 @@ export function IconCloud({ icons, images }: IconCloudProps) {
                 ctx.scale(scale, scale);
                 ctx.globalAlpha = opacity;
 
-                if (icons || images) {
+                if (icons) {
                     // Only try to render icons/images if they exist
                     if (
                         iconCanvasesRef.current[index] &&
@@ -299,7 +283,7 @@ export function IconCloud({ icons, images }: IconCloudProps) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, [icons, images, iconPositions, isDragging, mousePos, targetRotation]);
+    }, [icons, iconPositions, isDragging, mousePos, targetRotation]);
 
     return (
         <canvas

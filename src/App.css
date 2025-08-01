@@ -1,14 +1,16 @@
 #root {
     text-align: center;
+    justify-items: center;
 }
 
 main {
     position: relative;
     z-index: 0;
-    padding: 15dvh;
+    padding: 10dvh 5dvh 0 5dvh;
     display: flex;
     flex-direction: column;
-    gap: 10rem;
+    gap: 7rem;
+    max-width: 2500px;
 }
 
 main::before {

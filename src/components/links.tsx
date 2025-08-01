@@ -1,35 +1,44 @@
-interface LinkProps {
-    title: string;
-    href: string;
-    src: string;
-    children?: React.ReactNode;
-}
+import Icons from "./icons";
 
 export default function Links() {
     return (
         <>
             <div className="justify-center flex gap-4">
-                <Link title="GitHub" href="https://github.com/rodrigoaraujo46" src="https://cdn.simpleicons.org/github/_/white" />
-                <Link title="LinkedIn" href="https://linkedin.com/in/rodrigoaraujo46" src="src/assets/linkedin.svg" />
-                <Link title="LeetCode" href="https://leetcode.com/rodrigoaraujo46" src="https://cdn.simpleicons.org/leetcode/_/_" />
-                <Link title="Email me" href="mailto:rodrigo46.dev@gmail.com" src="src/assets/email.svg" />
-                <Link title="Curriculum" href="CurriculumVitaeEN.pdf" src="src/assets/curriculum.svg" />
+                <Link title="GitHub" href="https://github.com/rodrigoaraujo46">
+                    <Icons.GitHub />
+                </Link>
+                <Link title="LinkedIn" href="https://linkedin.com/in/rodrigoaraujo46">
+                    <Icons.LinkedIn />
+                </Link>
+                <Link title="LeetCode" href="https://leetcode.com/rodrigoaraujo46">
+                    <Icons.LeetCode />
+                </Link>
+                <Link title="Email me" href="mailto:rodrigo46.dev@gmail.com">
+                    <Icons.Email />
+                </Link>
+                <Link title="Curriculum" href="CurriculumVitaeEN.pdf">
+                    <Icons.Curriculum />
+                </Link>
             </div>
         </>
     );
 }
 
-function Link({ title, href, children, src }: LinkProps) {
+interface LinkProps {
+    title?: string;
+    href?: string;
+    children?: React.ReactNode;
+}
+
+function Link({ title, href, children }: LinkProps) {
     return (
-        <a
-            className="hover:scale-110 transition-transform w-[40px] h-[40px]"
+        <a className="w-[40px] h-[40px]"
             title={title}
             rel="noopener noreferrer"
             target="_blank"
             href={href}
         >
             {children}
-            <img className="h-full" src={src} alt={title} />
         </a>
     );
 }

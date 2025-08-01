@@ -1,0 +1,20 @@
+ .left-eye,
+ .right-eye {
+     animation-duration: 4s;
+     animation-iteration-count: infinite;
+     animation-timing-function: ease-out;
+     animation-name: blink;
+ }
+
+ @keyframes blink {
+
+     0%,
+     18%,
+     100% {
+         visibility: hidden;
+     }
+
+     15% {
+         visibility: visible;
+     }
+ }
