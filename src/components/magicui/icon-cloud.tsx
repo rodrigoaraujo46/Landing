@@ -14,13 +14,14 @@ interface Icon {
 
 interface IconCloudProps {
     icons?: React.ReactNode[];
+    images?: string[];
 }
 
 function easeOutCubic(t: number): number {
     return 1 - Math.pow(1 - t, 3);
 }
 
-export function IconCloud({ icons }: IconCloudProps) {
+export function IconCloud({ icons, images }: IconCloudProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [iconPositions, setIconPositions] = useState<Icon[]>([]);
     const [rotation] = useState({ x: 0, y: 0 });
@@ -36,47 +37,76 @@ export function IconCloud({ icons }: IconCloudProps) {
         startTime: number;
         duration: number;
     } | null>(null);
-    const animationFrameRef = useRef<number>(0);
+    const animationFrameRef = useRef<number>(null);
     const rotationRef = useRef(rotation);
     const iconCanvasesRef = useRef<HTMLCanvasElement[]>([]);
     const imagesLoadedRef = useRef<boolean[]>([]);
 
     // Create icon canvases once when icons/images change
     useEffect(() => {
-        if (!icons) return;
+        if (!icons && !images) return;
 
-        imagesLoadedRef.current = new Array(icons.length).fill(false);
+        const items = icons || images || [];
+        imagesLoadedRef.current = new Array(items.length).fill(false);
 
-        const newIconCanvases = icons.map((icon, index) => {
+        const newIconCanvases = items.map((item, index) => {
             const offscreen = document.createElement("canvas");
             offscreen.width = 40;
             offscreen.height = 40;
             const offCtx = offscreen.getContext("2d");
 
             if (offCtx) {
-                const imgS = renderToString(icon);
-                const src = imgS.match(/src="([^"]*)"/)?.[1] ?? '';
-                const alt = imgS.match(/alt="([^"]*)"/)?.[1] ?? '';
-                const img = new Image();
-                img.crossOrigin = "anonymous";
-                img.src = src
-                img.alt = alt
-                img.onload = () => {
-                    offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
-                    offCtx.drawImage(img, 0, 0);
-                    imagesLoadedRef.current[index] = true;
-                };
+                if (images) {
+                    // Handle image URLs directly
+                    const img = new Image();
+                    img.crossOrigin = "anonymous";
+                    img.src = items[index] as string;
+                    img.onload = () => {
+                        offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
+
+                        // Create circular clipping path
+                        offCtx.beginPath();
+                        offCtx.moveTo(8, 0);
+                        offCtx.lineTo(32, 0);
+                        offCtx.quadraticCurveTo(40, 0, 40, 8);
+                        offCtx.lineTo(40, 32);
+                        offCtx.quadraticCurveTo(40, 40, 32, 40);
+                        offCtx.lineTo(8, 40);
+                        offCtx.quadraticCurveTo(0, 40, 0, 32);
+                        offCtx.lineTo(0, 8);
+                        offCtx.quadraticCurveTo(0, 0, 8, 0);
+                        offCtx.closePath();
+                        offCtx.clip();
+
+                        // Draw the image
+                        offCtx.drawImage(img, 0, 0, 40, 40);
+
+                        imagesLoadedRef.current[index] = true;
+                    };
+                } else {
+                    // Handle SVG icons
+                    offCtx.scale(0.4, 0.4);
+                    const svgString = renderToString(item as React.ReactElement);
+                    const img = new Image();
+                    img.src = "data:image/svg+xml;base64," + btoa(svgString);
+                    img.onload = () => {
+                        offCtx.clearRect(0, 0, offscreen.width, offscreen.height);
+                        offCtx.drawImage(img, 0, 0);
+                        imagesLoadedRef.current[index] = true;
+                    };
+                }
             }
             return offscreen;
         });
 
         iconCanvasesRef.current = newIconCanvases;
-    }, [icons]);
+    }, [icons, images]);
 
     // Generate initial icon positions on a sphere
     useEffect(() => {
+        const items = icons || images || [];
         const newIcons: Icon[] = [];
-        const numIcons = icons?.length || 20;
+        const numIcons = items.length || 20;
 
         // Fibonacci sphere parameters
         const offset = 2 / numIcons;
@@ -91,16 +121,17 @@ export function IconCloud({ icons }: IconCloudProps) {
             const z = Math.sin(phi) * r;
 
             newIcons.push({
-                x: x * 100,
-                y: y * 100,
-                z: z * 100,
+                x: x * 110,
+                y: y * 110,
+                z: z * 110,
                 scale: 1,
                 opacity: 1,
                 id: i,
             });
+
         }
         setIconPositions(newIcons);
-    }, [icons]);
+    }, [icons, images]);
 
     // Handle mouse events
     const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -203,7 +234,7 @@ export function IconCloud({ icons }: IconCloudProps) {
             const dx = mousePos.x - centerX;
             const dy = mousePos.y - centerY;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            const speed = 0.003 + (distance / maxDistance) * 0.01;
+            const speed = 0.003 + (distance / maxDistance) * 0.006;
 
             if (targetRotation) {
                 const elapsed = performance.now() - targetRotation.startTime;
@@ -250,13 +281,13 @@ export function IconCloud({ icons }: IconCloudProps) {
                 ctx.scale(scale, scale);
                 ctx.globalAlpha = opacity;
 
-                if (icons) {
+                if (icons || images) {
                     // Only try to render icons/images if they exist
                     if (
                         iconCanvasesRef.current[index] &&
                         imagesLoadedRef.current[index]
                     ) {
-                        ctx.drawImage(iconCanvasesRef.current[index], -20, -20, 40, 40);
+                        ctx.drawImage(iconCanvasesRef.current[index], -30, -30, 50, 50);
                     }
                 } else {
                     // Show numbered circles if no icons/images are provided
@@ -283,7 +314,7 @@ export function IconCloud({ icons }: IconCloudProps) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, [icons, iconPositions, isDragging, mousePos, targetRotation]);
+    }, [icons, images, iconPositions, isDragging, mousePos, targetRotation]);
 
     return (
         <canvas

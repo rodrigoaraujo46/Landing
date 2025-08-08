@@ -22,7 +22,7 @@ export default function Skills() {
                                     <Icons.Typescript />
                                 </IconGroup>
                             </div>
-                            <div className="min-w-20">
+                            <div>
                                 <Gopher />
                             </div>
                         </div>

@@ -3,7 +3,7 @@ import './gopher.css'
 export default function Gopher() {
     return (
         <svg
-            className="gopher h-full"
+            className="gopher h-full min-w-26"
             viewBox="200 380 830 1060"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
