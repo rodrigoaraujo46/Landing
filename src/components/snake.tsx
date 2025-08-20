@@ -28,17 +28,23 @@ export default function GridSnakeBackground({
 
         const resize = () => {
             dpr = Math.min(2, window.devicePixelRatio || 1);
-            W = window.innerWidth; H = document.documentElement.scrollHeight;
+
+            const parent = canvas.parentElement!;
+            const rect = parent.getBoundingClientRect();
+            W = Math.round(rect.width);
+            H = Math.round(rect.height);
+
             canvas.style.width = `${W}px`;
             canvas.style.height = `${H}px`;
+
             canvas.width = Math.round(W * dpr);
             canvas.height = Math.round(H * dpr);
+
             ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         };
         resize();
         window.addEventListener("resize", resize);
 
-        const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
         const toCell = (x: number, y: number) => ({
             cx: Math.floor(x / cellSize),
             cy: Math.floor(y / cellSize),
@@ -79,13 +85,17 @@ export default function GridSnakeBackground({
         const draw = () => {
             ctx.clearRect(0, 0, W, H);
             if (showGrid) drawGrid();
-            if (!hasMouse) {
-                return
-            }
+            if (!hasMouse) return;
 
-            for (let i = body.length - 1; i >= 0; i--) {
+            const drawn: Set<string> = new Set();
+
+            for (let i = 0; i < body.length; i++) {
                 const seg = body[i];
-                const c = i === 0 ? color : tailColor;
+                const key = `${seg.cx},${seg.cy}`;
+                if (drawn.has(key)) continue; // skip if already drawn
+
+                const isHead = i === 0;
+                const c = isHead ? color : tailColor;
                 const x = seg.cx * cellSize + cellSize / 2;
                 const y = seg.cy * cellSize + cellSize / 2;
 
@@ -94,15 +104,19 @@ export default function GridSnakeBackground({
                 ctx.arc(x, y, lineWidth / 2, 0, Math.PI * 2);
                 ctx.fillStyle = c;
                 ctx.shadowColor = c;
-                ctx.shadowBlur = i === 0 ? 18 : 6;
+                ctx.shadowBlur = isHead ? 18 : 6;
                 ctx.fill();
                 ctx.restore();
+
+                drawn.add(key);
             }
         };
 
+        type Cell = { x: number; y: number; path: [number, number][] };
+
         let prioritizeX = true;
         let lastSwitch = performance.now();
-        const switchInterval = 800;
+        const switchInterval = 700;
 
         const advanceOneCell = () => {
             const now = performance.now();
@@ -112,47 +126,53 @@ export default function GridSnakeBackground({
             }
 
             const head = body[0];
-            const dx = target.cx - head.cx;
-            const dy = target.cy - head.cy;
-
             const maxCx = Math.floor((W - 1) / cellSize);
             const maxCy = Math.floor((H - 1) / cellSize);
 
             const willCollide = (x: number, y: number) =>
                 body.some(seg => seg.cx === x && seg.cy === y);
 
-            let nx = head.cx;
-            let ny = head.cy;
+            const dirs: [number, number][] = prioritizeX
+                ? [[1, 0], [-1, 0], [0, 1], [0, -1]]
+                : [[0, 1], [0, -1], [1, 0], [-1, 0]];
 
-            if (dx !== 0 || dy !== 0) {
-                const moves: Array<[number, number]> = [];
+            const queue: Cell[] = [{ x: head.cx, y: head.cy, path: [] }];
+            const visited = new Set<string>();
+            visited.add(`${head.cx},${head.cy}`);
 
-                if (prioritizeX) {
-                    if (dx !== 0) moves.push([nx + Math.sign(dx), ny]);
-                    if (dy !== 0) moves.push([nx, ny + Math.sign(dy)]);
-                } else {
-                    if (dy !== 0) moves.push([nx, ny + Math.sign(dy)]);
-                    if (dx !== 0) moves.push([nx + Math.sign(dx), ny]);
-                }
+            let nextMove: [number, number] | null = null;
 
-                if (dx !== 0) moves.push([nx - Math.sign(dx), ny]);
-                if (dy !== 0) moves.push([nx, ny - Math.sign(dy)]);
+            while (queue.length && !nextMove) {
+                const { x, y, path } = queue.shift()!;
+                for (const [dx, dy] of dirs) {
+                    const nx = x + dx;
+                    const ny = y + dy;
+                    const key = `${nx},${ny}`;
 
-                for (const [mx, my] of moves) {
-                    const cx = clamp(mx, 0, maxCx);
-                    const cy = clamp(my, 0, maxCy);
-                    if (!willCollide(cx, cy)) {
-                        nx = cx;
-                        ny = cy;
-                        break;
+                    if (
+                        nx >= 0 && nx <= maxCx &&
+                        ny >= 0 && ny <= maxCy &&
+                        !willCollide(nx, ny) &&
+                        !visited.has(key)
+                    ) {
+                        visited.add(key);
+                        const newPath: [number, number][] = [...path, [nx, ny] as [number, number]];
+
+                        if (nx === target.cx && ny === target.cy) {
+                            nextMove = newPath[0];
+                            break;
+                        }
+
+                        queue.push({ x: nx, y: ny, path: newPath });
                     }
                 }
-
-                body.unshift({ cx: nx, cy: ny });
-                while (body.length > length) body.pop();
-            } else {
-                if (body.length > 1) body.pop(); // collapse tail if mouse still
             }
+
+            const nx = nextMove ? nextMove[0] : head.cx;
+            const ny = nextMove ? nextMove[1] : head.cy;
+
+            body.unshift({ cx: nx, cy: ny });
+            while (body.length > length) body.pop();
         };
 
         let rafId = 0;

@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 #root {
     text-align: center;
     justify-items: center;
@@ -6,19 +8,22 @@
 main {
     position: relative;
     display: flex;
+    width: 100%;
+    overflow-x: hidden;
     flex-direction: column;
-    max-width: 2500px;
+    align-items: center;
 }
 
 main section:nth-of-type(odd) {
-    background-color: var(--color-background);
+    @apply backdrop-blur-md
 }
 
 section {
-    width: 100dvw;
+    width: 100%;
     padding: 10dvh 4dvh 10dvh 4dvh
 }
 
 hr {
+    width: 100%;
     background-color: white;
 }
