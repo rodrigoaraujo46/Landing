@@ -9,9 +9,9 @@ export default function Skills() {
             <h1 className="text-5xl font-roboto font-bold">Skills</h1>
             <div className="flex flex-row gap-6 justify-center flex-wrap">
                 <div className="max-w-[588px]">
-                    <Card>
+                    <Card from="left">
                         <CardTitle> Backend </CardTitle>
-                        <CardText> I love problem-solving and building complex systems. I&nbsp;strive to create scalable, reliable, and secure solutions. </CardText>
+                        <CardText> I’m passionate about problem-solving and crafting complex systems. My focus is on building solutions that are scalable, reliable, and secure. </CardText>
                         <div className="flex flex-row justify-between h-full mt-6">
                             <div className="h-[40px]">
                                 <IconGroup>
@@ -29,9 +29,9 @@ export default function Skills() {
                     </Card>
                 </div>
                 <div className="flex flex-col gap-6 max-w-[588px]">
-                    <Card>
+                    <Card from="right">
                         <CardTitle>Frontend & Design</CardTitle>
-                        <CardText> I'm passionate about design, animation, and interactions, always aiming to build fun websites with great user experiences. </CardText>
+                        <CardText> I’m passionate about design, animation, and interactions, always striving to create engaging websites with outstanding user experiences. </CardText>
                         <div className="mt-6 h-[40px]">
                             <IconGroup>
                                 <Icons.Tailwindcss />
@@ -43,9 +43,9 @@ export default function Skills() {
                             </IconGroup>
                         </div>
                     </Card>
-                    <Card >
+                    <Card from="right">
                         <CardTitle> Cloud & DevOps </CardTitle>
-                        <CardText> I have deployed and managed various applications using tools such as AWS, GCP, and other cloud services. </CardText>
+                        <CardText> I have deployed some applications using Cloud and DevOps systems. </CardText>
                         <div className="mt-6 h-[40px]">
                             <IconGroup>
                                 <Icons.Linux />

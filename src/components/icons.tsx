@@ -22,6 +22,7 @@ const Icons = {
     Ngrok: () => <Icon title="Ngrok" src="https://cdn.simpleicons.org/ngrok/_/white" alt="Ngrok" />,
     Vite: () => <Icon title="Vite" src="https://cdn.simpleicons.org/vite" alt="Vite" />,
     Kubernetes: () => <Icon title="Kubernetes" src="https://cdn.simpleicons.org/kubernetes" alt="Kubernetes" />,
+    UTAD: () => <Icon title="UTAD" src="src/assets/utad.svg" alt="UTAD" />,
 };
 
 function Icon({ title, src, alt }: { title?: string; src?: string; alt?: string }) {

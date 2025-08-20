@@ -3,7 +3,7 @@ import SkillCloud from "./cloud"
 
 export default function Intro() {
     return (
-        <div className="flex flex-wrap justify-center-safe gap-24">
+        <div className="flex flex-wrap justify-center-safe items-center gap-24">
             <img className="rounded-xl max-w-full" id="photo" src="https://placehold.co/384x480" alt="My Photo" />
             <Bio />
         </div>

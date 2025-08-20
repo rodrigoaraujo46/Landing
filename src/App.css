@@ -5,22 +5,20 @@
 
 main {
     position: relative;
-    z-index: 0;
-    padding: 10dvh 4dvh 10dvh 4dvh;
     display: flex;
     flex-direction: column;
-    gap: 7rem;
     max-width: 2500px;
 }
 
-main::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(circle, var(--color-go-border) 2px, transparent 1px);
-    background-size: 40px 40px;
-    z-index: -1;
+main section:nth-of-type(odd) {
+    background-color: var(--color-background);
+}
 
+section {
+    width: 100dvw;
+    padding: 10dvh 4dvh 10dvh 4dvh
+}
 
-    mask-image: radial-gradient(circle at center, white, transparent);
+hr {
+    background-color: white;
 }
