@@ -15,7 +15,7 @@ main {
 }
 
 main section:nth-of-type(odd) {
-    @apply backdrop-blur-md
+    @apply backdrop-blur-xl
 }
 
 section {

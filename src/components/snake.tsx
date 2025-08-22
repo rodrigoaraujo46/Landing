@@ -1,164 +1,190 @@
 import { useEffect, useRef } from "react";
 
-export default function GridSnakeBackground({
-    cellSize = 40,
-    speedCps = 22,
-    length = 30,
-    lineWidth = 12,
-    color = "rgba(0, 200, 255, 0.9)",
-    tailColor = "rgba(0, 200, 255, 0.25)",
-    showGrid = true,
-}: {
+type GridSnakeProps = {
     cellSize?: number;
     speedCps?: number;
     length?: number;
     lineWidth?: number;
-    color?: string;
+    headColor?: string;
     tailColor?: string;
-    showGrid?: boolean;
-}) {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const hasMouse = window.matchMedia("(pointer:fine)").matches;
+    gridColor?: string;
+}
 
-    useEffect(() => {
-        const canvas = canvasRef.current!;
-        const ctx = canvas.getContext("2d")!;
+export default function GridSnakeBackground({
+    cellSize = 40,
+    speedCps = 18,
+    length = 30,
+    lineWidth = 12,
+    headColor = "rgba(0, 200, 255, 0.9)",
+    gridColor = "rgba(255,255,255,0.06)",
+    tailColor = "rgba(0, 200, 255, 0.25)",
+}: GridSnakeProps) {
+    const snakeCanvasRef = useRef<HTMLCanvasElement | null>(null);
+    const gridCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
-        let W = 0, H = 0, dpr = 1;
+    useEffect(() => { // Canvas Resize & Grid Drawing
+        const gridCanvas = gridCanvasRef.current;
+        const snakeCanvas = snakeCanvasRef.current;
+        if (!gridCanvas || !snakeCanvas) return;
+
+        const gridCtx = gridCanvas.getContext("2d");
+        if (!gridCtx) return;
+
+        const drawGrid = () => {
+            const w = gridCanvas.width
+            const h = gridCanvas.height
+            gridCtx.clearRect(0, 0, w, h);
+            gridCtx.save();
+            gridCtx.strokeStyle = gridColor;
+            gridCtx.lineWidth = 1;
+
+            for (let x = 0; x <= w; x += cellSize) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(x, 0);
+                gridCtx.lineTo(x, h);
+                gridCtx.stroke();
+            }
+
+            for (let y = 0; y <= h; y += cellSize) {
+                gridCtx.beginPath();
+                gridCtx.moveTo(0, y);
+                gridCtx.lineTo(w, y);
+                gridCtx.stroke();
+            }
+
+            gridCtx.restore();
+        };
 
         const resize = () => {
-            dpr = Math.min(2, window.devicePixelRatio || 1);
-
-            const parent = canvas.parentElement!;
+            const parent = gridCanvas.parentElement!;
             const rect = parent.getBoundingClientRect();
-            W = Math.round(rect.width);
-            H = Math.round(rect.height);
+            snakeCanvas.width = gridCanvas.width = rect.width;
+            snakeCanvas.height = gridCanvas.height = rect.height;
 
-            canvas.style.width = `${W}px`;
-            canvas.style.height = `${H}px`;
-
-            canvas.width = Math.round(W * dpr);
-            canvas.height = Math.round(H * dpr);
-
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            drawGrid();
         };
+
         resize();
         window.addEventListener("resize", resize);
+        return () => window.removeEventListener("resize", resize);
+    }, [cellSize, gridColor]);
+
+    const targetRef = useRef({ cx: 0, cy: 0 });
+    useEffect(() => { // Mouse Tracking
+        const snakeCanvas = snakeCanvasRef.current;
+        if (!snakeCanvas) return;
 
         const toCell = (x: number, y: number) => ({
             cx: Math.floor(x / cellSize),
             cy: Math.floor(y / cellSize),
         });
 
-        let target = toCell(W / 2, H / 2);
+        targetRef.current = toCell(snakeCanvas.width / 2, snakeCanvas.height / 2);
+
         const onMove = (e: MouseEvent) => {
-            const rect = canvas.getBoundingClientRect();
+            const rect = snakeCanvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
-            target = toCell(x, y);
+            targetRef.current = toCell(x, y);
         };
-        window.addEventListener("mousemove", onMove);
 
-        const start = toCell(W / 2, H / 2);
-        const body: Array<{ cx: number; cy: number }> = Array.from({ length }, (_, i) => ({
+        window.addEventListener("mousemove", onMove);
+        return () => window.removeEventListener("mousemove", onMove);
+    }, [cellSize]);
+
+    const bodyRef = useRef<Array<{ cx: number; cy: number }>>([]);
+    useEffect(() => { // Snake State & Movement
+        const snakeCanvas = snakeCanvasRef.current;
+        if (!snakeCanvas) return;
+
+        const start = {
+            cx: Math.floor(snakeCanvas.width / 2 / cellSize),
+            cy: Math.floor(snakeCanvas.height / 2 / cellSize)
+        };
+        bodyRef.current = Array.from({ length }, (_, i) => ({
             cx: start.cx - i,
             cy: start.cy,
         }));
+    }, [cellSize, length]);
+
+    useEffect(() => { // Animation Loop
+        const snakeCanvas = snakeCanvasRef.current;
+        if (!snakeCanvas) return;
+
+        const snakeCtx = snakeCanvas.getContext("2d");
+        if (!snakeCtx) return;
 
         const stepInterval = 1 / speedCps;
         let acc = 0;
         let lastTs = performance.now();
-
-        const drawGrid = () => {
-            ctx.save();
-            ctx.strokeStyle = "rgba(255,255,255,0.06)";
-            ctx.lineWidth = 1;
-            for (let x = 0; x <= W; x += cellSize) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-            }
-            for (let y = 0; y <= H; y += cellSize) {
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-            }
-            ctx.restore();
-        };
-
-        const draw = () => {
-            ctx.clearRect(0, 0, W, H);
-            if (showGrid) drawGrid();
-            if (!hasMouse) return;
-
-            const drawn: Set<string> = new Set();
-
-            for (let i = 0; i < body.length; i++) {
-                const seg = body[i];
-                const key = `${seg.cx},${seg.cy}`;
-                if (drawn.has(key)) continue; // skip if already drawn
-
-                const isHead = i === 0;
-                const c = isHead ? color : tailColor;
-                const x = seg.cx * cellSize + cellSize / 2;
-                const y = seg.cy * cellSize + cellSize / 2;
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(x, y, lineWidth / 2, 0, Math.PI * 2);
-                ctx.fillStyle = c;
-                ctx.shadowColor = c;
-                ctx.shadowBlur = isHead ? 18 : 6;
-                ctx.fill();
-                ctx.restore();
-
-                drawn.add(key);
-            }
-        };
-
-        type Cell = { x: number; y: number; path: [number, number][] };
-
+        let rafId = 0;
         let prioritizeX = true;
         let lastSwitch = performance.now();
         const switchInterval = 700;
 
+        const draw = () => {
+            snakeCtx.clearRect(0, 0, snakeCanvas.width, snakeCanvas.height);
+            if (!window.matchMedia("(pointer:fine)").matches) return;
+
+            const drawn = new Set<string>();
+            bodyRef.current.forEach((seg, i) => {
+                const key = `${seg.cx},${seg.cy}`;
+                if (drawn.has(key)) return;
+
+                const isHead = i === 0;
+                const c = isHead ? headColor : tailColor;
+                const x = seg.cx * cellSize + cellSize / 2;
+                const y = seg.cy * cellSize + cellSize / 2;
+
+                snakeCtx.save();
+                snakeCtx.beginPath();
+                snakeCtx.arc(x, y, lineWidth / 2, 0, Math.PI * 2);
+                snakeCtx.fillStyle = c;
+                snakeCtx.shadowColor = c;
+                snakeCtx.shadowBlur = isHead ? 18 : 6;
+                snakeCtx.fill();
+                snakeCtx.restore();
+
+                drawn.add(key);
+            });
+        };
+
         const advanceOneCell = () => {
-            const now = performance.now();
-            if (now - lastSwitch > switchInterval) {
+            const head = bodyRef.current[0];
+            const maxCx = Math.floor((snakeCanvas.width - 1) / cellSize);
+            const maxCy = Math.floor((snakeCanvas.height - 1) / cellSize);
+
+            if (performance.now() - lastSwitch > switchInterval) {
                 prioritizeX = !prioritizeX;
-                lastSwitch = now;
+                lastSwitch = performance.now();
             }
 
-            const head = body[0];
-            const maxCx = Math.floor((W - 1) / cellSize);
-            const maxCy = Math.floor((H - 1) / cellSize);
-
             const willCollide = (x: number, y: number) =>
-                body.some(seg => seg.cx === x && seg.cy === y);
-
+                bodyRef.current.some(seg => seg.cx === x && seg.cy === y);
             const dirs: [number, number][] = prioritizeX
                 ? [[1, 0], [-1, 0], [0, 1], [0, -1]]
                 : [[0, 1], [0, -1], [1, 0], [-1, 0]];
 
-            const queue: Cell[] = [{ x: head.cx, y: head.cy, path: [] }];
-            const visited = new Set<string>();
-            visited.add(`${head.cx},${head.cy}`);
+            const queue: { x: number; y: number; path: [number, number][] }[] = [
+                { x: head.cx, y: head.cy, path: [] }
+            ];
 
+            const visited = new Set<string>([`${head.cx},${head.cy}`]);
             let nextMove: [number, number] | null = null;
 
             while (queue.length && !nextMove) {
                 const { x, y, path } = queue.shift()!;
                 for (const [dx, dy] of dirs) {
-                    const nx = x + dx;
-                    const ny = y + dy;
+                    let nx = x + dx;
+                    let ny = y + dy;
                     const key = `${nx},${ny}`;
-
-                    if (
-                        nx >= 0 && nx <= maxCx &&
-                        ny >= 0 && ny <= maxCy &&
-                        !willCollide(nx, ny) &&
-                        !visited.has(key)
-                    ) {
+                    if (!willCollide(nx, ny) && !visited.has(key)) {
+                        nx = Math.max(0, Math.min(nx, maxCx));
+                        ny = Math.max(0, Math.min(ny, maxCy));
                         visited.add(key);
-                        const newPath: [number, number][] = [...path, [nx, ny] as [number, number]];
 
-                        if (nx === target.cx && ny === target.cy) {
+                        const newPath: [number, number][] = [...path, [nx, ny]];
+                        if (nx === targetRef.current.cx && ny === targetRef.current.cy) {
                             nextMove = newPath[0];
                             break;
                         }
@@ -171,28 +197,21 @@ export default function GridSnakeBackground({
             const nx = nextMove ? nextMove[0] : head.cx;
             const ny = nextMove ? nextMove[1] : head.cy;
 
-            body.unshift({ cx: nx, cy: ny });
-            while (body.length > length) body.pop();
+            bodyRef.current.unshift({ cx: nx, cy: ny });
+            while (bodyRef.current.length > length) bodyRef.current.pop();
         };
-
-        let rafId = 0;
 
         const loop = (ts: number) => {
             const dt = (ts - lastTs) / 1000;
             lastTs = ts;
             acc += dt;
-
             while (acc >= stepInterval) {
                 advanceOneCell();
                 acc -= stepInterval;
             }
-
             draw();
             rafId = requestAnimationFrame(loop);
         };
-
-        const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (!reduced) rafId = requestAnimationFrame(loop);
 
         const onVisibility = () => {
             if (document.hidden) cancelAnimationFrame(rafId);
@@ -205,17 +224,22 @@ export default function GridSnakeBackground({
 
         return () => {
             cancelAnimationFrame(rafId);
-            window.removeEventListener("resize", resize);
-            window.removeEventListener("mousemove", onMove);
             document.removeEventListener("visibilitychange", onVisibility);
         };
-    }, [hasMouse, cellSize, speedCps, length, lineWidth, color, tailColor, showGrid]);
+    }, [cellSize, speedCps, length, lineWidth, headColor, tailColor]);
 
     return (
-        <canvas
-            ref={canvasRef}
-            aria-hidden
-            className="absolute inset-0, pointer-events-none, -z-1"
-        />
+        <>
+            <canvas
+                ref={gridCanvasRef}
+                aria-hidden
+                className="absolute w-full h-full inset-0 pointer-events-none -z-1"
+            />
+            <canvas
+                ref={snakeCanvasRef}
+                aria-hidden
+                className="absolute w-full h-full inset-0 pointer-events-none -z-1"
+            />
+        </>
     );
 }

@@ -17,7 +17,7 @@ export default function Card({ children, from }: { children?: ReactNode, from?: 
     }, [ref]);
 
     return (
-        <div ref={ref} className={`flex flex-col h-full shadow-md shadow-grey-950 backdrop-blur-xs relative rounded-xl p-5 transition-all transform-gpu duration-1000 ${show
+        <div ref={ref} className={`flex flex-col h-full shadow-md shadow-grey-950 backdrop-blur-xl relative rounded-xl p-5 transition-all transform-gpu duration-1000 ${show
             ? "opacity-100 translate-x-0"
             : `opacity-0 ${from === "left" ? "-translate-x-20" : "translate-x-20"}`
             }`} >
